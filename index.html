@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>GoldPremium Analysis</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet" />
+
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#F59E0B",
+                        "background-light": "#F8F9FA",
+                        "background-dark": "#0b0e11",
+                        "card-light": "#FFFFFF",
+                        "card-dark": "#161b22",
+                        "text-light": "#1F2937",
+                        "text-dark": "#e6edf3",
+                        "border-light": "#E5E7EB",
+                        "border-dark": "#30363d",
+                        "increase": "#ef4444",
+                        "decrease": "#3b82f6",
+                    },
+                    fontFamily: {
+                        display: ["'Noto Sans KR'", "sans-serif"],
+                    },
+                },
+            },
+        };
+    </script>
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+
+
+        /* Mobile Swipe Utils */
+        .swipe-container {
+            display: flex;
+            width: 100%;
+            /* overflow-x: hidden; REMOVED */
+            transition: transform 0.3s ease-in-out;
+        }
+
+        .swipe-item {
+            min-width: 100%;
+            flex-shrink: 0;
+        }
+
+        /* Desktop Grid Reset (Tailwind handles this, but ensuring flexibility) */
+        @media (min-width: 768px) {
+            .swipe-container {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 1.5rem;
+                /* gap-6 */
+                overflow: visible;
+                transform: none !important;
+            }
+
+            .swipe-item {
+                min-width: auto;
+            }
+        }
+    </style>
+</head>
+
+<body
+    class="bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark transition-colors duration-300 min-h-screen flex flex-col font-display">
+
+    <!-- Header -->
+    <nav
+        class="w-full px-6 py-4 flex justify-between items-center fixed top-0 z-50 bg-white/90 dark:bg-[#161b22]/90 backdrop-blur-md border-b border-border-light dark:border-border-dark shadow-sm transition-colors duration-300">
+        <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-primary text-3xl">candlestick_chart</span>
+            <h1 class="text-xl font-bold tracking-tight text-gray-900 dark:text-white uppercase transition-colors">
+                Gold<span class="text-primary">Premium</span> Analysis
+            </h1>
+        </div>
+        <div class="flex items-center gap-4">
+
+            <button
+                class="p-2 rounded-full bg-gray-100 dark:bg-[#0d1117] hover:bg-gray-200 dark:hover:bg-[#21262d] transition-colors text-primary border border-gray-200 dark:border-border-dark"
+                id="theme-toggle">
+                <span class="material-symbols-outlined">light_mode</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main
+        class="flex-grow container mx-auto px-4 pt-24 pb-12 flex flex-col items-center justify-start transition-colors duration-300">
+
+        <!-- Status Bar -->
+        <div class="w-full max-w-7xl mb-6">
+            <div class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 transition-colors">
+                <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                <span class="font-medium">Market Live</span>
+                <span class="mx-2 text-gray-300 dark:text-gray-600">|</span>
+                <span class="font-medium">Last Update: <span id="last-update">--:--:--</span></span>
+            </div>
+        </div>
+
+        <!-- Grid Layout -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl w-full">
+
+            <!-- Mobile Swipe Wrapper (Spans 2 cols on PC) -->
+            <div class="col-span-1 md:col-span-2 relative group overflow-hidden">
+                <!-- Swipe Logic Container -->
+                <div id="swipe-wrapper" class="swipe-container">
+
+                    <!-- 1. Real-time Gold Price (KRW) -->
+                    <div class="swipe-item">
+                        <div
+                            class="bg-card-light dark:bg-card-dark rounded-xl shadow-soft border border-border-light dark:border-border-dark flex flex-col h-full overflow-hidden hover:shadow-lg hover:shadow-primary/5 transition-all duration-300">
+                            <div
+                                class="p-6 border-b border-gray-100 dark:border-border-dark bg-white dark:bg-[#161b22] flex justify-between items-center transition-colors">
+                                <div>
+                                    <h2 class="text-lg font-bold text-gray-900 dark:text-white transition-colors">실시간 금
+                                        시세 (KRW)</h2>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 transition-colors">
+                                        International Spot & Futures</p>
+                                </div>
+                                <div
+                                    class="w-10 h-10 rounded-lg bg-orange-50 dark:bg-orange-500/10 flex items-center justify-center text-primary border border-orange-100 dark:border-orange-500/20 transition-colors">
+                                    <span class="material-symbols-outlined">currency_exchange</span>
+                                </div>
+                            </div>
+                            <div class="p-6 space-y-6 flex-grow bg-white dark:bg-[#161b22] transition-colors">
+                                <div
+                                    class="grid grid-cols-2 gap-4 items-end border-b border-dashed border-gray-200 dark:border-border-dark pb-4 transition-colors">
+                                    <div>
+                                        <span
+                                            class="text-gray-500 dark:text-gray-400 text-sm font-medium block mb-1 transition-colors">국제금
+                                            선물</span>
+                                        <span
+                                            class="text-2xl font-bold tracking-tight text-blue-900 dark:text-white transition-colors"
+                                            id="intl-futures-krw-val">Loading...</span>
+                                    </div>
+                                    <div class="text-right">
+                                        <span class="text-sm font-bold flex items-center justify-end gap-1"
+                                            id="intl-futures-krw-pct">
+                                            <span class="material-symbols-outlined text-sm">remove</span> 0.00%
+                                        </span>
+                                        <span
+                                            class="text-xs text-gray-500 dark:text-gray-400 font-medium transition-colors"
+                                            id="intl-futures-krw-prem">-</span>
+                                    </div>
+                                </div>
+                                <div
+                                    class="grid grid-cols-2 gap-4 items-end border-b border-dashed border-gray-200 dark:border-border-dark pb-4 transition-colors">
+                                    <div>
+                                        <span
+                                            class="text-gray-500 dark:text-gray-400 text-sm font-medium block mb-1 transition-colors">국제금
+                                            현물</span>
+                                        <span
+                                            class="text-2xl font-bold tracking-tight text-blue-900 dark:text-white transition-colors"
+                                            id="intl-spot-krw-val">Loading...</span>
+                                    </div>
+                                    <div class="text-right">
+                                        <span class="text-sm font-bold flex items-center justify-end gap-1"
+                                            id="intl-spot-krw-pct">
+                                            <span class="material-symbols-outlined text-sm">remove</span> 0.00%
+                                        </span>
+                                        <span
+                                            class="text-xs text-gray-500 dark:text-gray-400 font-medium transition-colors"
+                                            id="intl-spot-krw-prem">-</span>
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-2 gap-4 items-end">
+                                    <div>
+                                        <span
+                                            class="text-gray-500 dark:text-gray-400 text-sm font-medium block mb-1 transition-colors">국내금
+                                            고시가</span>
+                                        <span
+                                            class="text-2xl font-bold tracking-tight text-gray-900 dark:text-yellow-300 transition-colors"
+                                            id="dom-gold-krw-val">Loading...</span>
+                                    </div>
+                                    <div class="text-right">
+                                        <span
+                                            class="inline-block px-2 py-1 rounded text-xs font-semibold bg-gray-100 dark:bg-[#21262d] text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-border-dark transition-colors">Standard</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div
+                                class="px-6 py-4 bg-gray-50 dark:bg-[#0d1117] border-t border-gray-100 dark:border-border-dark transition-colors">
+                                <div class="flex justify-between items-center text-sm">
+                                    <span class="text-gray-500 dark:text-gray-400 font-medium transition-colors">프리미엄
+                                        지수</span>
+                                    <div class="flex gap-4">
+                                        <span id="SummryFutPct"
+                                            class="font-bold text-gray-400 dark:text-gray-500 transition-colors">선물
+                                            -</span>
+                                        <span id="SummrySpotPct"
+                                            class="font-bold text-gray-400 dark:text-gray-500 transition-colors">현물
+                                            -</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 2. Real-time Gold Price (USD) -->
+                    <div class="swipe-item">
+                        <div
+                            class="bg-card-light dark:bg-card-dark rounded-xl shadow-soft border border-border-light dark:border-border-dark flex flex-col h-full overflow-hidden hover:shadow-lg hover:shadow-primary/5 transition-all duration-300">
+                            <div
+                                class="p-6 border-b border-gray-100 dark:border-border-dark bg-white dark:bg-[#161b22] flex justify-between items-center transition-colors">
+                                <div>
+                                    <h2 class="text-lg font-bold text-gray-900 dark:text-white transition-colors">실시간 금
+                                        시세 (USD)</h2>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 transition-colors">Per Ounce
+                                        (oz)</p>
+                                </div>
+                                <div
+                                    class="w-10 h-10 rounded-lg bg-orange-50 dark:bg-orange-500/10 flex items-center justify-center text-primary border border-orange-100 dark:border-orange-500/20 transition-colors">
+                                    <span class="material-symbols-outlined">attach_money</span>
+                                </div>
+                            </div>
+                            <div class="p-6 space-y-6 flex-grow bg-white dark:bg-[#161b22] transition-colors">
+                                <div
+                                    class="grid grid-cols-2 gap-4 items-end border-b border-dashed border-gray-200 dark:border-border-dark pb-4 transition-colors">
+                                    <div>
+                                        <span
+                                            class="text-gray-500 dark:text-gray-400 text-sm font-medium block mb-1 transition-colors">국제금
+                                            선물</span>
+                                        <span
+                                            class="text-2xl font-bold tracking-tight text-blue-900 dark:text-white transition-colors"
+                                            id="intl-futures-usd-val">Loading...</span>
+                                    </div>
+                                    <div class="text-right">
+                                        <span class="text-sm font-bold flex items-center justify-end gap-1"
+                                            id="intl-futures-usd-pct">
+                                            <span class="material-symbols-outlined text-sm">remove</span> 0.00%
+                                        </span>
+                                        <span
+                                            class="text-xs text-gray-500 dark:text-gray-400 font-medium transition-colors"
+                                            id="intl-futures-usd-prem">-</span>
+                                    </div>
+                                </div>
+                                <div
+                                    class="grid grid-cols-2 gap-4 items-end border-b border-dashed border-gray-200 dark:border-border-dark pb-4 transition-colors">
+                                    <div>
+                                        <span
+                                            class="text-gray-500 dark:text-gray-400 text-sm font-medium block mb-1 transition-colors">국제금
+                                            현물</span>
+                                        <span
+                                            class="text-2xl font-bold tracking-tight text-blue-900 dark:text-white transition-colors"
+                                            id="intl-spot-usd-val">Loading...</span>
+                                    </div>
+                                    <div class="text-right">
+                                        <span class="text-sm font-bold flex items-center justify-end gap-1"
+                                            id="intl-spot-usd-pct">
+                                            <span class="material-symbols-outlined text-sm">remove</span> 0.00%
+                                        </span>
+                                        <span
+                                            class="text-xs text-gray-500 dark:text-gray-400 font-medium transition-colors"
+                                            id="intl-spot-usd-prem">-</span>
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-2 gap-4 items-end">
+                                    <div>
+                                        <span
+                                            class="text-gray-500 dark:text-gray-400 text-sm font-medium block mb-1 transition-colors">국내금
+                                            환산</span>
+                                        <span
+                                            class="text-2xl font-bold tracking-tight text-gray-900 dark:text-yellow-300 transition-colors"
+                                            id="dom-gold-usd-val">Loading...</span>
+                                    </div>
+                                    <div class="text-right">
+                                        <span
+                                            class="inline-block px-2 py-1 rounded text-xs font-semibold bg-gray-100 dark:bg-[#21262d] text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-border-dark transition-colors">Converted</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div
+                                class="px-6 py-4 bg-gray-50 dark:bg-[#0d1117] border-t border-gray-100 dark:border-border-dark transition-colors">
+                                <div class="flex justify-between items-center text-sm">
+                                    <span
+                                        class="text-gray-500 dark:text-gray-400 font-medium transition-colors">Converted
+                                        Base</span>
+                                    <span class="text-gray-700 dark:text-gray-300 font-bold transition-colors"
+                                        id="converted-base-rate">- KRW/USD</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mobile Dots (Pagination) - visible only on mobile -->
+                <div class="flex justify-center gap-2 mt-4 md:hidden">
+                    <div id="dot-0" class="w-2 h-2 rounded-full bg-primary transition-colors cursor-pointer"
+                        onclick="scrollToIndex(0)"></div>
+                    <div id="dot-1"
+                        class="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-700 transition-colors cursor-pointer"
+                        onclick="scrollToIndex(1)"></div>
+                </div>
+            </div>
+
+            <!-- 3. Portfolio & Indicators -->
+            <div
+                class="bg-card-light dark:bg-card-dark rounded-xl shadow-soft border border-border-light dark:border-border-dark flex flex-col h-full overflow-hidden hover:shadow-lg hover:shadow-primary/5 transition-all duration-300">
+                <div
+                    class="p-6 border-b border-gray-100 dark:border-border-dark bg-white dark:bg-[#161b22] flex justify-between items-center transition-colors">
+                    <div>
+                        <h2 class="text-lg font-bold text-gray-900 dark:text-white transition-colors">내 포트폴리오</h2>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 transition-colors">KRX Gold Account</p>
+                    </div>
+                    <div
+                        class="w-10 h-10 rounded-lg bg-orange-50 dark:bg-orange-500/10 flex items-center justify-center text-primary border border-orange-100 dark:border-orange-500/20 transition-colors">
+                        <span class="material-symbols-outlined">account_balance_wallet</span>
+                    </div>
+                </div>
+
+                <div class="p-6 space-y-8 flex-grow bg-white dark:bg-[#161b22] transition-colors">
+                    <div class="space-y-6 pt-2">
+                        <div class="relative">
+                            <label class="block text-xs font-bold text-primary mb-1">평균매수가 (KRW)</label>
+                            <div class="relative group">
+                                <span
+                                    class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 font-medium transition-colors">₩</span>
+                                <input id="user-avg-price" onkeyup="formatInput(this); calcMyGold()" inputmode="numeric"
+                                    class="w-full bg-white dark:bg-[#0d1117] border border-gray-300 dark:border-border-dark rounded-lg py-3 pl-8 pr-4 text-right font-bold text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all placeholder-gray-300 dark:placeholder-gray-600 hover:border-gray-400 dark:hover:border-gray-500 shadow-sm"
+                                    placeholder="0" type="text" value="" />
+                            </div>
+                        </div>
+                        <div class="relative">
+                            <label class="block text-xs font-bold text-primary mb-1">보유수량 (g)</label>
+                            <div class="relative group">
+                                <input id="user-qty" onkeyup="formatInput(this); calcMyGold()" inputmode="numeric"
+                                    class="w-full bg-white dark:bg-[#0d1117] border border-gray-300 dark:border-border-dark rounded-lg py-3 px-4 text-right font-bold text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all placeholder-gray-300 dark:placeholder-gray-600 hover:border-gray-400 dark:hover:border-gray-500 shadow-sm"
+                                    placeholder="0" type="text" value="" />
+                                <span
+                                    class="absolute right-12 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 text-sm font-medium transition-colors">g</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div
+                        class="bg-gray-50 dark:bg-[#0d1117] rounded-lg p-5 border border-gray-200 dark:border-border-dark shadow-inner mt-4 transition-colors">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-sm font-medium text-gray-600 dark:text-gray-400 transition-colors">총
+                                평가금액</span>
+                            <span class="text-lg font-bold text-gray-900 dark:text-white transition-colors"
+                                id="my-total-val">0 KRW</span>
+                        </div>
+                        <div class="h-px bg-gray-200 dark:bg-border-dark my-3 transition-colors"></div>
+                        <div class="flex justify-between items-center">
+                            <span
+                                class="text-sm font-medium text-gray-600 dark:text-gray-400 transition-colors">평가손익</span>
+                            <div class="text-right">
+                                <div class="text-2xl font-bold text-gray-400 dark:text-gray-600 transition-colors"
+                                    id="my-profit-amt">0</div>
+                                <div class="text-sm font-medium text-gray-400 dark:text-gray-600 transition-colors"
+                                    id="my-profit-pct">0.00%</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. Key Indicators -->
+            <div
+                class="bg-card-light dark:bg-card-dark rounded-xl shadow-soft border border-border-light dark:border-border-dark flex flex-col h-full lg:col-span-3 transition-all duration-300">
+                <div
+                    class="p-6 border-b border-gray-100 dark:border-border-dark bg-white dark:bg-[#161b22] flex justify-between items-center transition-colors">
+                    <div>
+                        <h2 class="text-lg font-bold text-gray-900 dark:text-white transition-colors">참고 지표</h2>
+                    </div>
+                    <div
+                        class="w-10 h-10 rounded-lg bg-gray-100 dark:bg-[#0d1117] flex items-center justify-center text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-border-dark transition-colors">
+                        <span class="material-symbols-outlined">query_stats</span>
+                    </div>
+                </div>
+
+                <div
+                    class="p-6 grid grid-cols-1 lg:grid-cols-2 gap-6 bg-white dark:bg-[#161b22] rounded-b-xl transition-colors">
+                    <div
+                        class="flex items-center justify-between p-5 rounded-xl bg-gray-50 dark:bg-[#0d1117] border border-gray-200 dark:border-border-dark hover:border-gray-300 dark:hover:border-gray-600 transition-colors">
+                        <div class="flex items-center gap-4">
+                            <div
+                                class="w-12 h-12 rounded-full bg-white dark:bg-[#161b22] shadow-sm border border-gray-100 dark:border-border-dark flex items-center justify-center text-green-600 dark:text-green-500 transition-colors">
+                                <span class="material-symbols-outlined">currency_exchange</span>
+                            </div>
+                            <div>
+                                <span
+                                    class="text-sm font-bold text-gray-700 dark:text-gray-200 block transition-colors">원/달러
+                                    환율</span>
+                                <span
+                                    class="text-xs text-gray-500 dark:text-gray-500 font-medium transition-colors">USD/KRW</span>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <span
+                                class="text-xl font-bold tracking-tight text-gray-900 dark:text-white transition-colors"
+                                id="exchange-rate-val">Loading...</span>
+                        </div>
+                    </div>
+
+                    <div
+                        class="flex items-center justify-between p-5 rounded-xl bg-gray-50 dark:bg-[#0d1117] border border-gray-200 dark:border-border-dark hover:border-gray-300 dark:hover:border-gray-600 transition-colors">
+                        <div class="flex items-center gap-4">
+                            <div
+                                class="w-12 h-12 rounded-full bg-white dark:bg-[#161b22] shadow-sm border border-gray-100 dark:border-border-dark flex items-center justify-center text-primary transition-colors">
+                                <span class="material-symbols-outlined">scale</span>
+                            </div>
+                            <div>
+                                <span
+                                    class="text-sm font-bold text-gray-700 dark:text-gray-200 block transition-colors">금
+                                    1돈 (3.75g)</span>
+                                <span class="text-xs text-gray-500 dark:text-gray-500 font-medium transition-colors">도매가
+                                    기준</span>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <span
+                                class="text-xl font-bold tracking-tight text-gray-900 dark:text-white transition-colors"
+                                id="gold-don-val">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        // --- Toggle Logic ---
+        const themeToggleBtn = document.getElementById('theme-toggle');
+        const themeIcon = themeToggleBtn.querySelector('span');
+
+        // Initial Theme Check: Default to Light (per user request)
+        if (localStorage.theme === 'dark') {
+            document.documentElement.classList.add('dark');
+            themeIcon.innerText = 'light_mode'; // Icon shows sun (to switch to light)
+        } else {
+            // Default is light, no class needed
+            document.documentElement.classList.remove('dark');
+            themeIcon.innerText = 'dark_mode'; // Icon shows moon (to switch to dark)
+        }
+
+        themeToggleBtn.addEventListener('click', () => {
+            if (document.documentElement.classList.contains('dark')) {
+                document.documentElement.classList.remove('dark');
+                localStorage.theme = 'light';
+                themeIcon.innerText = 'dark_mode';
+            } else {
+                document.documentElement.classList.add('dark');
+                localStorage.theme = 'dark';
+                themeIcon.innerText = 'light_mode';
+            }
+        });
+
+        // --- Swipe Logic (Mobile) ---
+        const swipeWrapper = document.getElementById('swipe-wrapper');
+        const dots = [document.getElementById('dot-0'), document.getElementById('dot-1')];
+        let currentIndex = 0;
+        let startX = 0;
+        let isDragging = false;
+
+        // Touch Events
+        swipeWrapper.addEventListener('touchstart', (e) => {
+            startX = e.touches[0].clientX;
+            isDragging = true;
+        }, { passive: true });
+
+        swipeWrapper.addEventListener('touchmove', (e) => {
+            if (!isDragging) return;
+        }, { passive: true });
+
+        swipeWrapper.addEventListener('touchend', (e) => {
+            if (!isDragging) return;
+            isDragging = false;
+            const endX = e.changedTouches[0].clientX;
+            const diff = startX - endX;
+
+            // Threshold for swipe
+            if (Math.abs(diff) > 50) {
+                if (diff > 0) { // Swipe Left -> Next
+                    currentIndex = (currentIndex + 1) % 2;
+                } else { // Swipe Right -> Prev (Loop)
+                    currentIndex = (currentIndex - 1 + 2) % 2;
+                }
+                updateSwipe();
+            }
+        });
+
+        function updateSwipe() {
+            // Only apply on mobile (check if md:grid is active? No, just apply transform since CSS handles reset)
+            swipeWrapper.style.transform = `translateX(-${currentIndex * 100}%)`;
+
+            // Update dots
+            dots.forEach((dot, idx) => {
+                if (idx === currentIndex) {
+                    dot.classList.add('bg-primary');
+                    dot.classList.remove('bg-gray-300', 'dark:bg-gray-700');
+                } else {
+                    dot.classList.remove('bg-primary');
+                    dot.classList.add('bg-gray-300', 'dark:bg-gray-700');
+                }
+            });
+        }
+
+        // Expose for onClick dots
+        window.scrollToIndex = (idx) => {
+            currentIndex = idx;
+            updateSwipe();
+        };
+
+        // Reset transform on resize (Responsive check)
+        window.addEventListener('resize', () => {
+            if (window.innerWidth >= 768) {
+                swipeWrapper.style.transform = 'none';
+            } else {
+                swipeWrapper.style.transform = `translateX(-${currentIndex * 100}%)`;
+            }
+        });
+
+
+        // --- Constants & State (Logic Preserved) ---
+        const OZ_TO_G = 31.1035;
+        const DON_TO_G = 3.75;
+        let exchangeRate = 0;
+        let intlSpotUsd = 0;
+        let intlFuturesUsd = 0;
+        let domGoldKrw = 0;
+
+        // --- Formatters ---
+        const fmtKRW = new Intl.NumberFormat('ko-KR', { maximumFractionDigits: 0 });
+        const fmtUSD = new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        const fmtPct = new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+        function formatInput(el) {
+            let val = el.value.replace(/[^\d.]/g, '');
+            if (!val) { el.value = ''; return; }
+            const parts = val.split('.');
+            parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+            if (parts.length > 1) {
+                parts[1] = parts[1].substring(0, 2);
+                el.value = parts.join('.');
+            } else {
+                el.value = parts[0];
+            }
+        }
+
+        function calcMyGold() {
+            const rawAvg = document.getElementById('user-avg-price').value.replace(/,/g, '');
+            const rawQty = document.getElementById('user-qty').value.replace(/,/g, '');
+            const avg = parseFloat(rawAvg) || 0;
+            const qty = parseFloat(rawQty) || 0;
+            const cur = domGoldKrw;
+
+            const totalEl = document.getElementById('my-total-val');
+            const profitAmtEl = document.getElementById('my-profit-amt');
+            const profitPctEl = document.getElementById('my-profit-pct');
+
+            if (avg > 0 && qty > 0 && cur > 0) {
+                const total = cur * qty;
+                const profit = (cur - avg) * qty;
+                const pct = ((cur - avg) / avg) * 100;
+                totalEl.innerText = fmtKRW.format(total) + ' KRW';
+                profitAmtEl.innerText = (profit > 0 ? '+' : '') + fmtKRW.format(profit);
+                profitPctEl.innerText = (pct > 0 ? '+' : '') + fmtPct.format(pct) + '%';
+                const colorClass = profit > 0 ? 'text-increase' : (profit < 0 ? 'text-decrease' : 'text-gray-400 dark:text-gray-600');
+                profitAmtEl.className = 'text-2xl font-bold transition-colors ' + colorClass;
+                profitPctEl.className = 'text-sm font-medium transition-colors ' + colorClass;
+            } else {
+                totalEl.innerText = '0 KRW';
+                profitAmtEl.innerText = '0';
+                profitPctEl.innerText = '0.00%';
+                profitAmtEl.className = 'text-2xl font-bold text-gray-400 dark:text-gray-600 transition-colors';
+                profitPctEl.className = 'text-sm font-medium text-gray-400 dark:text-gray-600 transition-colors';
+            }
+        }
+
+        function updateUI(forceClear = false) {
+            const spotKrw = (intlSpotUsd * exchangeRate) / OZ_TO_G;
+            const futKrw = (intlFuturesUsd * exchangeRate) / OZ_TO_G;
+            const domUsd = exchangeRate > 0 ? (domGoldKrw * OZ_TO_G) / exchangeRate : 0;
+
+            const premSpotKrw = domGoldKrw - spotKrw;
+            const premSpotKrwPct = spotKrw > 0 ? (premSpotKrw / spotKrw) * 100 : 0;
+            const premFutKrw = domGoldKrw - futKrw;
+            const premFutKrwPct = futKrw > 0 ? (premFutKrw / futKrw) * 100 : 0;
+            const premSpotUsd = domUsd - intlSpotUsd;
+            const premSpotUsdPct = intlSpotUsd > 0 ? (premSpotUsd / intlSpotUsd) * 100 : 0;
+            const premFutUsd = domUsd - intlFuturesUsd;
+            const premFutUsdPct = intlFuturesUsd > 0 ? (premFutUsd / intlFuturesUsd) * 100 : 0;
+
+            const set = (id, txt) => { const el = document.getElementById(id); if (el) { el.innerText = txt; } };
+            const setPct = (idPct, idPrem, valPrem, pctPrem, isKrw) => {
+                const elPct = document.getElementById(idPct);
+                const elPrem = document.getElementById(idPrem);
+                if (elPct && elPrem && pctPrem !== 0) {
+                    const colorClass = pctPrem > 0 ? 'text-increase' : (pctPrem < 0 ? 'text-decrease' : 'text-gray-500');
+                    const icon = pctPrem > 0 ? 'arrow_drop_up' : (pctPrem < 0 ? 'arrow_drop_down' : 'remove');
+                    const sign = pctPrem > 0 ? '+' : '';
+                    elPct.innerHTML = `<span class="material-symbols-outlined text-sm">${icon}</span> ${sign}${fmtPct.format(pctPrem)}%`;
+                    elPct.className = `text-sm font-bold flex items-center justify-end gap-1 ${colorClass}`;
+                    const pVal = isKrw ? fmtKRW.format(valPrem) : fmtUSD.format(valPrem);
+                    const curr = isKrw ? '₩' : '$';
+                    elPrem.innerText = `${sign} ${curr}${pVal} (Premium)`;
+                }
+            };
+
+            if (intlFuturesUsd > 0) {
+                set('intl-futures-krw-val', fmtKRW.format(futKrw));
+                setPct('intl-futures-krw-pct', 'intl-futures-krw-prem', premFutKrw, premFutKrwPct, true);
+                const sumFut = document.getElementById('SummryFutPct');
+                if (sumFut) {
+                    const col = premFutKrwPct > 0 ? 'text-increase' : 'text-decrease';
+                    const sn = premFutKrwPct > 0 ? '+' : '';
+                    sumFut.innerText = `선물 ${sn}${fmtPct.format(premFutKrwPct)}%`;
+                    sumFut.className = `font-bold transition-colors ${col}`;
+                }
+            }
+            if (intlSpotUsd > 0) {
+                set('intl-spot-krw-val', fmtKRW.format(spotKrw));
+                setPct('intl-spot-krw-pct', 'intl-spot-krw-prem', premSpotKrw, premSpotKrwPct, true);
+                const sumSpot = document.getElementById('SummrySpotPct');
+                if (sumSpot) {
+                    const col = premSpotKrwPct > 0 ? 'text-increase' : 'text-decrease';
+                    const sn = premSpotKrwPct > 0 ? '+' : '';
+                    sumSpot.innerText = `현물 ${sn}${fmtPct.format(premSpotKrwPct)}%`;
+                    sumSpot.className = `font-bold transition-colors ${col}`;
+                }
+            }
+            if (domGoldKrw > 0) set('dom-gold-krw-val', fmtKRW.format(domGoldKrw));
+
+            if (intlFuturesUsd > 0) {
+                set('intl-futures-usd-val', fmtUSD.format(intlFuturesUsd));
+                setPct('intl-futures-usd-pct', 'intl-futures-usd-prem', premFutUsd, premFutUsdPct, false);
+            }
+            if (intlSpotUsd > 0) {
+                set('intl-spot-usd-val', fmtUSD.format(intlSpotUsd));
+                setPct('intl-spot-usd-pct', 'intl-spot-usd-prem', premSpotUsd, premSpotUsdPct, false);
+            }
+            if (domUsd > 0) set('dom-gold-usd-val', fmtUSD.format(domUsd));
+            if (exchangeRate > 0) {
+                set('converted-base-rate', `1 USD = ${fmtKRW.format(exchangeRate)} KRW`);
+                set('exchange-rate-val', fmtKRW.format(exchangeRate));
+            }
+            if (domGoldKrw > 0) set('gold-don-val', fmtKRW.format(domGoldKrw * 3.75));
+            set('last-update', new Date().toLocaleTimeString());
+            calcMyGold();
+        }
+
+        async function fetchData() {
+            const fetchHtml = async (url) => {
+                const searchUrl = encodeURIComponent(url);
+                const proxies = [
+                    (u) => `https://api.allorigins.win/raw?url=${u}`,
+                    (u) => `https://thingproxy.freeboard.io/fetch/${decodeURIComponent(u)}`,
+                    (u) => `https://api.codetabs.com/v1/proxy?quest=${u}`
+                ];
+                for (const proxyGen of proxies) {
+                    try {
+                        const controller = new AbortController();
+                        const timeout = 1500;
+                        const id = setTimeout(() => controller.abort(), timeout);
+                        const proxyUrl = proxyGen(searchUrl);
+                        const finalUrl = proxyUrl + (proxyUrl.includes('?') ? '&' : '?') + `t=${Date.now()}`;
+                        const res = await fetch(finalUrl, { signal: controller.signal });
+                        clearTimeout(id);
+                        if (!res.ok) throw new Error(`Status ${res.status}`);
+                        const html = await res.text();
+                        if (html && html.length > 500) return html;
+                    } catch (e) { }
+                }
+                return null;
+            };
+
+            const updateExchange = async () => {
+                try {
+                    const res = await fetch('https://open.er-api.com/v6/latest/USD');
+                    const data = await res.json();
+                    if (data && data.rates && data.rates.KRW) { exchangeRate = data.rates.KRW; updateUI(); return; }
+                } catch (e) { }
+                const html = await fetchHtml('https://m.stock.naver.com/marketindex/exchange/FX_USDKRW');
+                if (html) { const m = html.match(/\"closePrice\":\"([\d,.]+)\"/) || html.match(/\"nowValue\":\"([\d,.]+)\"/); if (m) { exchangeRate = parseFloat(m[1].replace(/,/g, '')); updateUI(); } }
+            };
+            const updateDomestic = async () => {
+                const html = await fetchHtml('https://m.stock.naver.com/marketindex/metals/M04020000');
+                if (html) { const m = html.match(/\"closePrice\":\"([\d,.]+)\"/) || html.match(/\"nowValue\":\"([\d,.]+)\"/); if (m) { domGoldKrw = parseFloat(m[1].replace(/,/g, '')); updateUI(); } }
+            };
+            const updateIntlSpot = async () => {
+                const html = await fetchHtml('https://kr.investing.com/currencies/xau-usd');
+                if (html) { const m = html.match(/data-test=\"instrument-price-last\"[^>]*>([\d,.]+)/); if (m) { intlSpotUsd = parseFloat(m[1].replace(/,/g, '')); updateUI(); } }
+            };
+            const updateIntlFutures = async () => {
+                const html = await fetchHtml('https://kr.investing.com/commodities/gold');
+                if (html) { const m = html.match(/data-test=\"instrument-price-last\"[^>]*>([\d,.]+)/); if (m) { intlFuturesUsd = parseFloat(m[1].replace(/,/g, '')); updateUI(); } }
+            };
+            updateExchange(); updateDomestic(); updateIntlSpot(); updateIntlFutures();
+        }
+
+        fetchData();
+        setInterval(fetchData, 1000);
+    </script>
+</body>
+
+</html>
